@@ -21,14 +21,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 
-@Preview
 @Composable
-fun HomeScreen() {
-    var count by remember { mutableIntStateOf(0) }
+fun HomeScreen(navController: NavHostController) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Welcome to Home Screen!\nCount = $count", fontSize = 24.sp, textAlign = TextAlign.Center)
-        FloatingActionButton(onClick = { count++ }, modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
+        Text("Welcome to Home Screen!", fontSize = 24.sp, textAlign = TextAlign.Center)
+        FloatingActionButton(onClick = { navController.navigate("add_meal") }, modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
             Icon(Icons.Filled.Add, contentDescription = "Add")
         }
     }
