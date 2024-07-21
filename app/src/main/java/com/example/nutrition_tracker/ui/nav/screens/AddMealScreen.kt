@@ -2,6 +2,7 @@ package com.example.nutrition_tracker.ui.nav.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -45,19 +46,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.nutrition_tracker.data.CSV
 import com.example.nutrition_tracker.data.Item
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 @OptIn(ExperimentalFoundationApi::class)
 @Preview
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AddMealScreen(navController: NavHostController? = null) {
+    val csv = CSV(LocalContext.current, "fdc_nutrient_data.csv")
+
+    println(csv[0])
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -74,11 +83,14 @@ fun AddMealScreen(navController: NavHostController? = null) {
             )
         }
     ) { contentPadding ->
-        var foodItems = remember { mutableStateListOf(Item()) }
         var searchText by remember { mutableStateOf("") }
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(top = contentPadding.calculateTopPadding())) {
+        val foodCatalogue = csv.entries.toTypedArray()
+        var foodItems = remember { mutableStateListOf(*foodCatalogue) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = contentPadding.calculateTopPadding())
+        ) {
             // Search bar
             Box(
                 modifier = Modifier
@@ -95,11 +107,22 @@ fun AddMealScreen(navController: NavHostController? = null) {
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     textStyle = TextStyle(fontSize = 18.sp),
                     shape = RoundedCornerShape(16.dp),
-                    leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
-                        // Handle search action
+                        foodItems.clear()
+                        foodItems.addAll(foodCatalogue.filter {
+                            it["name"]?.contains(
+                                searchText,
+                                ignoreCase = true
+                            ) ?: true
+                        })
                     }),
                     label = { Text("Search ...") },
                     colors = TextFieldDefaults.colors(
@@ -109,7 +132,11 @@ fun AddMealScreen(navController: NavHostController? = null) {
                     )
                 )
             }
-            val tabData = arrayOf("Items" to Icons.Filled.ShoppingCart, "Recipes" to Icons.Filled.Build, "Custom" to Icons.Filled.Create)
+            val tabData = arrayOf(
+                "Items" to Icons.Filled.ShoppingCart,
+                "Recipes" to Icons.Filled.Build,
+                "Custom" to Icons.Filled.Create
+            )
             val pagerState = rememberPagerState { tabData.size }
             val scope = rememberCoroutineScope()
             var selectedIndex by remember { mutableIntStateOf(0) }
@@ -149,17 +176,31 @@ fun AddMealScreen(navController: NavHostController? = null) {
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = tabData[it].first)
-                }
-                
-            }
-            LazyColumn {
-                items(foodItems) {
-                    Card(modifier = Modifier.padding(16.dp)) {
-                        Text(text = it.name)
+                LazyColumn(verticalArrangement = Arrangement.Top) {
+                    items(foodItems) {
+                        Card(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                            Column {
+                                Text(
+                                    text = it["name"] ?: "",
+                                    modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 4.dp)
+                                )
+                                Text(
+                                    text = "Carbs: ${it["Carbohydrates"]}g",
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                )
+                                Text(
+                                    text = "Protein: ${it["Protein"]}g",
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                )
+                                Text(
+                                    text = "Fats: ${it["Lipids"]}g",
+                                    modifier = Modifier.padding(16.dp, 4.dp, 16.dp, 16.dp)
+                                )
+                            }
+                        }
                     }
                 }
+
             }
         }
     }
