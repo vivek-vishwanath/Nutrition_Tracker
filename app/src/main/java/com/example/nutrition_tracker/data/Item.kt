@@ -7,7 +7,7 @@ data class Item(
     var numServings: Int = 1
 )
 
-class NutritionLabel(
+data class NutritionLabel(
     val macros: Macronutrients = Macronutrients(),
     val micros: Micronutrients = Micronutrients(),
     val vitamins: Vitamins = Vitamins(),
@@ -15,7 +15,7 @@ class NutritionLabel(
     val cholesterol: Int = 0
 )
 
-class Macronutrients(
+data class Macronutrients(
     val totalFat: Int = 0, 
     val satFat: Int = 0, 
     val transFat: Int = 0,
@@ -23,14 +23,16 @@ class Macronutrients(
     val fiber: Int = 0, 
     val sugar: Int = 0, 
     val protein: Int = 0
-)
+) {
+    val total = totalFat + totalCarb + protein
+}
 
-class Micronutrients(
+data class Micronutrients(
     val vitamins: Vitamins = Vitamins(),
     val minerals: Minerals = Minerals()
 )
 
-class Vitamins(
+data class Vitamins(
     val a: Int = 0,
     val c: Int = 0,
     val d: Int = 0,
@@ -46,7 +48,7 @@ class Vitamins(
     val b12: Int = 0,
 )
 
-class Minerals(
+data class Minerals(
     val calcium: Int = 0,
     val iron: Int = 0,
     val magnesium: Int = 0,
