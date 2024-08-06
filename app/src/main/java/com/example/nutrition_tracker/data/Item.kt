@@ -8,59 +8,116 @@ data class Item(
 )
 
 data class NutritionLabel(
-    val macros: Macronutrients = Macronutrients(),
-    val micros: Micronutrients = Micronutrients(),
-    val vitamins: Vitamins = Vitamins(),
-    val minerals: Minerals = Minerals(),
-    val cholesterol: Int = 0
-)
+    var macros: Macronutrients = Macronutrients(),
+    var micros: Micronutrients = Micronutrients(),
+    var vitamins: Vitamins = Vitamins(),
+    var minerals: Minerals = Minerals(),
+    var cholesterol: Int = 0
+) {
+
+    operator fun plusAssign(nutrition: NutritionLabel) {
+        macros += nutrition.macros
+        micros += nutrition.micros
+        vitamins += nutrition.vitamins
+        minerals += nutrition.minerals
+        cholesterol += nutrition.cholesterol
+        println("macros = $macros")
+    }
+}
 
 data class Macronutrients(
-    val totalFat: Int = 0, 
-    val satFat: Int = 0, 
-    val transFat: Int = 0,
-    val totalCarb: Int = 0, 
-    val fiber: Int = 0, 
-    val sugar: Int = 0, 
-    val protein: Int = 0
+    var totalFat: Int = 0, 
+    var satFat: Int = 0, 
+    var transFat: Int = 0,
+    var totalCarb: Int = 0, 
+    var fiber: Int = 0, 
+    var sugar: Int = 0, 
+    var protein: Int = 0
 ) {
-    val total = totalFat + totalCarb + protein
+    val total get() = totalFat + totalCarb + protein
+
+    operator fun plusAssign(macros: Macronutrients) {
+        totalFat += macros.totalFat
+        satFat += macros.satFat
+        transFat += macros.transFat
+        totalCarb += macros.totalCarb
+        fiber += macros.fiber
+        sugar += macros.sugar
+        protein += macros.protein
+    }
 }
 
 data class Micronutrients(
-    val vitamins: Vitamins = Vitamins(),
-    val minerals: Minerals = Minerals()
-)
+    var vitamins: Vitamins = Vitamins(),
+    var minerals: Minerals = Minerals()
+) {
+    operator fun plusAssign(micros: Micronutrients) {
+        vitamins += micros.vitamins
+        minerals += micros.minerals
+    }
+}
 
 data class Vitamins(
-    val a: Int = 0,
-    val c: Int = 0,
-    val d: Int = 0,
-    val e: Int = 0,
-    val k: Int = 0,
-    val b1: Int = 0,
-    val b2: Int = 0,
-    val b3: Int = 0,
-    val b5: Int = 0,
-    val b6: Int = 0,
-    val b7: Int = 0,
-    val b9: Int = 0,
-    val b12: Int = 0,
-)
+    var a: Int = 0,
+    var c: Int = 0,
+    var d: Int = 0,
+    var e: Int = 0,
+    var k: Int = 0,
+    var b1: Int = 0,
+    var b2: Int = 0,
+    var b3: Int = 0,
+    var b5: Int = 0,
+    var b6: Int = 0,
+    var b7: Int = 0,
+    var b9: Int = 0,
+    var b12: Int = 0,
+) {
+    operator fun plusAssign(vitamins: Vitamins) {
+        a += vitamins.a
+        c += vitamins.c
+        d += vitamins.d
+        e += vitamins.e
+        k += vitamins.k
+        b1 += vitamins.b1
+        b2 += vitamins.b2
+        b3 += vitamins.b3
+        b5 += vitamins.b5
+        b6 += vitamins.b6
+        b7 += vitamins.b7
+        b9 += vitamins.b9
+        b12 += vitamins.b12
+    }
+}
 
 data class Minerals(
-    val calcium: Int = 0,
-    val iron: Int = 0,
-    val magnesium: Int = 0,
-    val phosphorus: Int =0,
-    val potassium: Int = 0,
-    val sodium: Int = 0,
-    val zinc: Int = 0,
-    val copper: Int = 0,
-    val manganese: Int = 0,
-    val selenium: Int = 0,
-    val chromium: Int = 0,
-    val molybdenum: Int = 0,
-    val iodine: Int = 0,
-    val chloride: Int = 0
-)
+    var calcium: Int = 0,
+    var iron: Int = 0,
+    var magnesium: Int = 0,
+    var phosphorus: Int =0,
+    var potassium: Int = 0,
+    var sodium: Int = 0,
+    var zinc: Int = 0,
+    var copper: Int = 0,
+    var manganese: Int = 0,
+    var selenium: Int = 0,
+    var chromium: Int = 0,
+    var molybdenum: Int = 0,
+    var iodine: Int = 0,
+    var chloride: Int = 0
+) {
+    operator fun plusAssign(minerals: Minerals) {
+        calcium += minerals.calcium
+        iron += minerals.iron
+        magnesium += minerals.magnesium
+        phosphorus += minerals.phosphorus
+        sodium += minerals.sodium
+        zinc += minerals.zinc
+        copper += minerals.copper
+        manganese += minerals.manganese
+        selenium += minerals.selenium
+        chromium += minerals.chromium
+        molybdenum += minerals.molybdenum
+        iodine += minerals.iodine
+        chloride += minerals.chloride
+    }
+}
