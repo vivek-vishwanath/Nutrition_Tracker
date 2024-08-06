@@ -56,7 +56,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -65,23 +64,32 @@ import com.example.nutrition_tracker.data.Item
 import com.example.nutrition_tracker.data.Macro
 import com.example.nutrition_tracker.data.Macronutrients
 import com.example.nutrition_tracker.data.NutritionLabel
-
-typealias JSON = HashMap<String, String>
+import com.example.nutrition_tracker.data.Profile
 
 @OptIn(ExperimentalFoundationApi::class)
-@Preview
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun AddMealScreen(navController: NavHostController? = null) {
+fun AddMealScreen(navController: NavHostController) {
     val csv = CSV(LocalContext.current, "fdc_nutrient_data.csv")
-    val foodCatalogue = csv.entries.toTypedArray()
+    val foodCatalogue = csv.entries.map {
+        Item(
+            name = it["name"]!!,
+            nutrition = NutritionLabel(
+                macros = Macronutrients(
+                    totalCarb = it["Carbohydrates"]?.toTenthsDecimal() ?: 0,
+                    totalFat = it["Lipids"]?.toTenthsDecimal() ?: 0,
+                    protein = it["Protein"]?.toTenthsDecimal() ?: 0
+                )
+            )
+        )
+    }.toTypedArray()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Add Item", color = Color.White) },
                 navigationIcon = {
-                    IconButton(onClick = { navController!!.navigateUp() }) {
+                    IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -114,7 +122,7 @@ fun AddMealScreen(navController: NavHostController? = null) {
 }
 
 @Composable
-fun SearchBar(items: SnapshotStateList<JSON>, catalogue: Array<JSON>) {
+fun SearchBar(items: SnapshotStateList<Item>, catalogue: Array<Item>) {
     var searchText by remember { mutableStateOf("") }
     Box(
         modifier = Modifier
@@ -142,10 +150,10 @@ fun SearchBar(items: SnapshotStateList<JSON>, catalogue: Array<JSON>) {
             keyboardActions = KeyboardActions(onSearch = {
                 items.clear()
                 items.addAll(catalogue.filter {
-                    it["name"]?.contains(
+                    it.name.contains(
                         searchText,
                         ignoreCase = true
-                    ) ?: true
+                    )
                 })
             }),
             label = { Text("Search ...") },
