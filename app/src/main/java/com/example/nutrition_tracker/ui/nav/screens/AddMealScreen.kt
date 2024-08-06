@@ -7,13 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,9 +24,11 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -114,8 +116,11 @@ fun AddMealScreen(navController: NavHostController) {
 
             SearchBar(items = foodItems, catalogue = foodCatalogue)
             TabHeader(tabHeader, pagerState)
-            HorizontalPager(state = pagerState) {
-                ItemList(foodItems)
+            HorizontalPager(state = pagerState) { page ->
+                if (page == 0)
+                    ItemList(foodItems, navController)
+                else
+                    RecipeList()
             }
         }
     }
@@ -203,93 +208,119 @@ fun TabHeader(tabHeader: Array<Pair<String, ImageVector>>, pagerState: PagerStat
 }
 
 @Composable
-fun ItemList(items: List<JSON>) {
+fun ItemList(items: List<Item>, navController: NavHostController) {
     Box(modifier = Modifier
         .fillMaxHeight()
         .padding(top = 16.dp)) {
         LazyColumn(verticalArrangement = Arrangement.Top) {
-            items(items) { obj ->
-                val item = Item(
-                    name = obj["name"]!!,
-                    nutrition = NutritionLabel(
-                        macros = Macronutrients(
-                            totalCarb = obj["Carbohydrates"]?.toTenthsDecimal() ?: 0,
-                            totalFat = obj["Lipids"]?.toTenthsDecimal() ?: 0,
-                            protein = obj["Protein"]?.toTenthsDecimal() ?: 0
-                        )
-                    )
-                )
-                ItemCard(item)
-            }
+            items(items) { ItemCard(it, navController) }
         }
     }
 
 }
 
 @Composable
-fun ItemCard(item: Item) {
+fun ItemCard(item: Item, navController: NavHostController) {
     Card(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Column {
-            Text(
-                text = item.name,
-                modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 4.dp)
-            )
-            Row {
-                MacroBar(item)
+        Column(modifier = Modifier.background(Color(0.85f, 0.9f, 1f))) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                    .padding(vertical = 16.dp)
+                    .fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(7f)
+                ) {
+                    Text(
+                        text = item.name.substringBefore(","),
+                        fontSize = 18.sp,
+                    )
+                    Text(
+                        text = item.name.substringAfter(", "),
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                FloatingActionButton(
+                    onClick = {
+                        Profile += item
+                        println("model = ${Profile.today.nutrition}")
+                        navController.popBackStack()
+                    }, modifier = Modifier
+                        .height(32.dp)
+                        .padding(end = 16.dp)
+                        .weight(1f),
+                    backgroundColor = Color(0.1f, 0.6f, 1f)
+                ) {
+                    Icon(Icons.Default.Add, "", modifier = Modifier.width(128.dp), tint = Color(0.2f, 0.2f, 0.6f))
+                }
             }
+            MacroBar(item)
         }
     }
 
 }
 
 @Composable
-fun RowScope.MacroBar(item: Item) {
-    arrayOf(
-        Macro("Carbs", item.nutrition.macros.totalCarb, Color.Yellow, 16.dp, 2.dp, 16.dp, 0.dp, 0.dp, 16.dp),
-        Macro("Protein", item.nutrition.macros.protein, Color.Green, 2.dp, 2.dp),
-        Macro("Fats", item.nutrition.macros.totalFat, Color.LightGray, 2.dp, 16.dp, 0.dp, 16.dp, 16.dp, 0.dp)
-    ).forEach {
-        val total = item.nutrition.macros.total.toDouble()
-        println("\tn = ${it.amount}")
-        val weight = if (it.amount / total < 0.2) {
-            0.2f
-        } else (it.amount / total).toFloat()
-        Column(
-            modifier = Modifier
-                .padding(
-                    start = it.startPadding,
-                    end = it.endPadding
-                )
-                .weight(weight)
-        ) {
-            Box(
+fun MacroBar(item: Item) {
+    Row {
+        arrayOf(
+            Macro("Carbs", item.nutrition.macros.totalCarb, Color(1f, 0.7f, 0.4f), 16.dp, 2.dp, 16.dp, 0.dp, 0.dp, 16.dp),
+            Macro("Protein", item.nutrition.macros.protein, Color(0.4f, 0.9f, 0.5f), 2.dp, 2.dp),
+            Macro("Fats", item.nutrition.macros.totalFat, Color(0.9f, 0.6f, 0.9f), 2.dp, 16.dp, 0.dp, 16.dp, 16.dp, 0.dp)
+        ).forEach {
+            val total = item.nutrition.macros.total.toDouble()
+            val weight = if (it.amount / total < 0.2) {
+                0.2f
+            } else (it.amount / total).toFloat()
+            Column(
                 modifier = Modifier
-                    .height(20.dp)
-                    .fillMaxWidth()
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = CornerSize(it.topLeft),
-                            topEnd = CornerSize(it.topRight),
-                            bottomEnd = CornerSize(it.bottomLeft),
-                            bottomStart = CornerSize(it.bottomRight)
-                        )
+                    .padding(
+                        start = it.startPadding,
+                        end = it.endPadding
                     )
-                    .background(it.color),
-                contentAlignment = Alignment.CenterStart
+                    .weight(weight)
             ) {
+                Box(
+                    modifier = Modifier
+                        .height(20.dp)
+                        .fillMaxWidth()
+                        .clip(
+                            RoundedCornerShape(
+                                topStart = CornerSize(it.topLeft),
+                                topEnd = CornerSize(it.topRight),
+                                bottomEnd = CornerSize(it.bottomLeft),
+                                bottomStart = CornerSize(it.bottomRight)
+                            )
+                        )
+                        .background(it.color),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = "${it.amount / 10.0}g",
+                        fontSize = 10.sp,
+                        color = Color(0.1f, 0.1f, 0.1f),
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
                 Text(
-                    text = "${it.amount / 10.0}g",
-                    fontSize = 10.sp,
-                    modifier = Modifier.padding(start = 8.dp)
+                    text = it.name,
+                    fontSize = 9.sp,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 8.dp)
                 )
             }
-            Text(
-                text = it.name,
-                fontSize = 9.sp,
-                color = Color.DarkGray,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 8.dp)
-            )
         }
+
+    }
+}
+
+@Composable
+fun RecipeList() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(text = "Coming Soon ...", fontSize = 36.sp)
     }
 }
 
