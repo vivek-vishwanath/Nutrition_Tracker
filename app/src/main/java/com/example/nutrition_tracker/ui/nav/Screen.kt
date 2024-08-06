@@ -13,6 +13,10 @@ import com.example.nutrition_tracker.ui.nav.screens.SearchScreen
 
 sealed class Screen(val route: String, val icon: ImageVector, val title: String) {
 
+    companion object {
+        val list by lazy { listOf(Home, Search, Profile) }
+    }
+
     @Composable
     abstract fun Render(navController: NavHostController)
 
